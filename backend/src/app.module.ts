@@ -5,7 +5,6 @@ import { UserModule } from './user/user.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { dataSourceOptions } from 'db/data-source';
 import { AuthModule } from './auth/auth.module';
-import { PostModule } from './post/post.module';
 import { ConfigModule } from '@nestjs/config';
 
 @Module({
@@ -13,7 +12,7 @@ import { ConfigModule } from '@nestjs/config';
     TypeOrmModule.forRoot(dataSourceOptions),
     UserModule,
     AuthModule,
-    PostModule,
+
     ConfigModule.forRoot(),
   ],
   controllers: [AppController],

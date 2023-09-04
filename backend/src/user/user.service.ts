@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './entities/User.entity';
 import { DeleteResult, Like, Repository, UpdateResult } from 'typeorm';
@@ -63,7 +63,7 @@ export class UserService {
   }
 
   async findOne(id: number): Promise<User> {
-    return await this.userRepository.findOne({
+    const user = await this.userRepository.findOne({
       where: {
         id,
       },
@@ -77,6 +77,10 @@ export class UserService {
         'updatedAt',
       ],
     });
+    if (!user) {
+      throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+    }
+    return user;
   }
   async createUser(createUserDto: CreateUserDto): Promise<User> {
     const hashPassword = await bcrypt.hash(createUserDto.password, 10);
