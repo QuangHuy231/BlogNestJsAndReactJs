@@ -6,11 +6,13 @@ import { CreateUserDto } from './dto/create-user.dto';
 import * as bcrypt from 'bcrypt';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { FilterUserDto } from './dto/filter-user.dto';
+import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
 
 @Injectable()
 export class UserService {
   constructor(
     @InjectRepository(User) private userRepository: Repository<User>,
+    private cloudinaryService: CloudinaryService,
   ) {}
 
   async findAll(query: FilterUserDto): Promise<any> {
@@ -103,5 +105,13 @@ export class UserService {
 
   async updateAvatar(id: number, avatar: string): Promise<UpdateResult> {
     return await this.userRepository.update(id, { avatar: avatar });
+  }
+
+  async updateAvatarCloudinary(
+    id: number,
+    file: Express.Multer.File,
+  ): Promise<UpdateResult> {
+    const avatar = await this.cloudinaryService.uploadFile(file);
+    return await this.userRepository.update(id, { avatar: avatar.secure_url });
   }
 }

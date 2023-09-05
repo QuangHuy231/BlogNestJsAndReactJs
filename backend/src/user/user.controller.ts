@@ -100,4 +100,41 @@ export class UserController {
       file.destination + '/' + file.filename,
     );
   }
+
+  @UseGuards(AuthGuard)
+  @Post('upload-avatar-cloudinary')
+  @UseInterceptors(
+    FileInterceptor('avatar', {
+      fileFilter: (req, file, cb) => {
+        const ext = extname(file.originalname);
+        const allowedExt = ['.png', '.jpg', '.jpeg'];
+        if (!allowedExt.includes(ext)) {
+          req.fileValidationError =
+            'Wrong file extension. Only png, jpg and jpeg are allowed';
+          return cb(null, false);
+        } else {
+          const fileSize = parseInt(req.headers['content-length']);
+          if (fileSize > 5 * 1024 * 1024) {
+            req.fileValidationError = 'File size is too large. Max size is 5MB';
+            return cb(null, false);
+          } else {
+            return cb(null, true);
+          }
+        }
+      },
+    }),
+  )
+  uploadAvatarCloudinary(
+    @Req() req: any,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
+    if (req.fileValidationError) {
+      throw new BadRequestException(req.fileValidationError);
+    }
+
+    if (!file) {
+      throw new BadRequestException('File is required');
+    }
+    return this.userService.updateAvatarCloudinary(req.user.id, file);
+  }
 }

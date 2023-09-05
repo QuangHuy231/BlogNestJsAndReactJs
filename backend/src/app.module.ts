@@ -6,6 +6,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { dataSourceOptions } from 'db/data-source';
 import { AuthModule } from './auth/auth.module';
 import { ConfigModule } from '@nestjs/config';
+import { CloudinaryModule } from './cloudinary/cloudinary.module';
 
 @Module({
   imports: [
@@ -13,7 +14,9 @@ import { ConfigModule } from '@nestjs/config';
     UserModule,
     AuthModule,
 
-    ConfigModule.forRoot(),
+    ConfigModule.forRoot({ isGlobal: true }),
+
+    CloudinaryModule,
   ],
   controllers: [AppController],
   providers: [AppService],
