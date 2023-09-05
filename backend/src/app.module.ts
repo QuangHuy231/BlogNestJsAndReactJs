@@ -7,6 +7,7 @@ import { dataSourceOptions } from 'db/data-source';
 import { AuthModule } from './auth/auth.module';
 import { ConfigModule } from '@nestjs/config';
 import { CloudinaryModule } from './cloudinary/cloudinary.module';
+import { PostModule } from './post/post.module';
 
 @Module({
   imports: [
@@ -17,6 +18,8 @@ import { CloudinaryModule } from './cloudinary/cloudinary.module';
     ConfigModule.forRoot({ isGlobal: true }),
 
     CloudinaryModule,
+
+    PostModule,
   ],
   controllers: [AppController],
   providers: [AppService],
