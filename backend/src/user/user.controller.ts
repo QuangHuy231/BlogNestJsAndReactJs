@@ -8,15 +8,21 @@ import {
   Put,
   Delete,
   Query,
+  UploadedFile,
+  UseInterceptors,
+  Req,
+  BadRequestException,
 } from '@nestjs/common';
 import { User } from './entities/User.entity';
 import { UserService } from './user.service';
 import { AuthGuard } from 'src/auth/auth.guard';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { UpdateResult } from 'typeorm';
 import { FilterUserDto } from './dto/filter-user.dto';
 import { ApiTags, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { storageConfig } from 'helper/config';
+import { extname } from 'path';
 
 @ApiBearerAuth()
 @ApiTags('User')
@@ -55,5 +61,43 @@ export class UserController {
   @Delete(':id')
   delete(@Param('id') id: string) {
     return this.userService.deleteUser(Number(id));
+  }
+
+  @UseGuards(AuthGuard)
+  @Post('upload-avatar')
+  @UseInterceptors(
+    FileInterceptor('avatar', {
+      storage: storageConfig('avatar'),
+      fileFilter: (req, file, cb) => {
+        const ext = extname(file.originalname);
+        const allowedExt = ['.png', '.jpg', '.jpeg'];
+        if (!allowedExt.includes(ext)) {
+          req.fileValidationError =
+            'Wrong file extension. Only png, jpg and jpeg are allowed';
+          return cb(null, false);
+        } else {
+          const fileSize = parseInt(req.headers['content-length']);
+          if (fileSize > 5 * 1024 * 1024) {
+            req.fileValidationError = 'File size is too large. Max size is 5MB';
+            return cb(null, false);
+          } else {
+            return cb(null, true);
+          }
+        }
+      },
+    }),
+  )
+  uploadAvatar(@Req() req: any, @UploadedFile() file: Express.Multer.File) {
+    if (req.fileValidationError) {
+      throw new BadRequestException(req.fileValidationError);
+    }
+
+    if (!file) {
+      throw new BadRequestException('File is required');
+    }
+    return this.userService.updateAvatar(
+      req.user.id,
+      file.destination + '/' + file.filename,
+    );
   }
 }
